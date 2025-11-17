@@ -1,0 +1,213 @@
+@model IEnumerable<StajPortal.Models.Entities.JobPosting>
+@{
+    ViewData["Title"] = "İlan Onayları";
+}
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>
+                        İlan Onay Bekleyenler
+                    </h3>
+                </div>
+                <div class="card-body">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    @if (!Model.Any())
+                    {
+                        <div class="alert alert-info text-center py-5">
+                            <i class="fas fa-info-circle fa-3x mb-3"></i>
+                            <h4>Onay Bekleyen İlan Yok</h4>
+                            <p class="mb-0">Şu anda onay bekleyen herhangi bir ilan bulunmuyor.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>#</th>
+                                        <th>İlan Başlığı</th>
+                                        <th>Firma</th>
+                                        <th>Bölüm</th>
+                                        <th>Şehir</th>
+                                        <th>Oluşturma Tarihi</th>
+                                        <th class="text-center">Durum</th>
+                                        <th class="text-center">İşlemler</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var job in Model)
+                                    {
+                                        <tr>
+                                            <td>@job.Id</td>
+                                            <td>
+                                                <strong>@job.Title</strong>
+                                                <br />
+                                                <small class="text-muted">
+                                                    @(job.Description.Length > 100 ? job.Description.Substring(0, 100) + "..." : job.Description)
+                                                </small>
+                                            </td>
+                                            <td>
+                                                <i class="fas fa-building text-primary me-1"></i>
+                                                @job.Company.CompanyName
+                                                <br />
+                                                <small class="text-muted">@job.Company.User.Email</small>
+                                            </td>
+                                            <td>
+                                                @(job.Department ?? "-")
+                                            </td>
+                                            <td>
+                                                <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                                @(job.City ?? "-")
+                                            </td>
+                                            <td>
+                                                <small>@job.CreatedAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (job.IsActive)
+                                                {
+                                                    <span class="badge bg-warning text-dark">
+                                                        <i class="fas fa-clock me-1"></i>Onay Bekliyor
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">
+                                                        <i class="fas fa-pause me-1"></i>Pasif
+                                                    </span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <div class="btn-group btn-group-sm" role="group">
+                                                    <!-- Detay Butonu -->
+                                                    <button type="button" 
+                                                            class="btn btn-info" 
+                                                            data-bs-toggle="modal" 
+                                                            data-bs-target="#jobDetailModal@(job.Id)"
+                                                            title="Detayları Gör">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+
+                                                    <!-- Onayla Butonu -->
+                                                    <form asp-action="ApproveJob" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@job.Id" />
+                                                        <button type="submit" 
+                                                                class="btn btn-success" 
+                                                                onclick="return confirm('Bu ilanı onaylamak istediğinizden emin misiniz?')"
+                                                                title="Onayla">
+                                                            <i class="fas fa-check"></i>
+                                                        </button>
+                                                    </form>
+
+                                                    <!-- Reddet Butonu -->
+                                                    <form asp-action="RejectJob" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@job.Id" />
+                                                        <button type="submit" 
+                                                                class="btn btn-danger" 
+                                                                onclick="return confirm('Bu ilanı reddetmek istediğinizden emin misiniz?')"
+                                                                title="Reddet">
+                                                            <i class="fas fa-times"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Detay Modal -->
+                                        <div class="modal fade" id="jobDetailModal@(job.Id)" tabindex="-1">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-primary text-white">
+                                                        <h5 class="modal-title">@job.Title</h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <h6 class="fw-bold"><i class="fas fa-building me-2"></i>Firma</h6>
+                                                        <p>@job.Company.CompanyName</p>
+
+                                                        <h6 class="fw-bold"><i class="fas fa-align-left me-2"></i>Açıklama</h6>
+                                                        <p>@job.Description</p>
+
+                                                        <div class="row">
+                                                            <div class="col-md-6">
+                                                                <h6 class="fw-bold"><i class="fas fa-graduation-cap me-2"></i>Bölüm</h6>
+                                                                <p>@(job.Department ?? "Belirtilmemiş")</p>
+                                                            </div>
+                                                            <div class="col-md-6">
+                                                                <h6 class="fw-bold"><i class="fas fa-map-marker-alt me-2"></i>Şehir</h6>
+                                                                <p>@(job.City ?? "Belirtilmemiş")</p>
+                                                            </div>
+                                                        </div>
+
+                                                        @if (job.StartDate.HasValue || job.EndDate.HasValue)
+                                                        {
+                                                            <div class="row">
+                                                                @if (job.StartDate.HasValue)
+                                                                {
+                                                                    <div class="col-md-6">
+                                                                        <h6 class="fw-bold"><i class="fas fa-calendar-alt me-2"></i>Başlangıç</h6>
+                                                                        <p>@job.StartDate.Value.ToString("dd MMMM yyyy")</p>
+                                                                    </div>
+                                                                }
+                                                                @if (job.EndDate.HasValue)
+                                                                {
+                                                                    <div class="col-md-6">
+                                                                        <h6 class="fw-bold"><i class="fas fa-calendar-check me-2"></i>Bitiş</h6>
+                                                                        <p>@job.EndDate.Value.ToString("dd MMMM yyyy")</p>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        }
+
+                                                        <hr />
+                                                        <small class="text-muted">
+                                                            Oluşturulma: @job.CreatedAt.ToString("dd.MM.yyyy HH:mm")
+                                                        </small>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3">
+                            <p class="text-muted mb-0">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Toplam <strong>@Model.Count()</strong> adet onay bekleyen ilan bulunmaktadır.
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

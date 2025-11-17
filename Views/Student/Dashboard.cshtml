@@ -1,0 +1,162 @@
+@model StajPortal.Models.Entities.StudentProfile
+@{
+    ViewData["Title"] = "Öğrenci Paneli";
+    var totalApplications = ViewBag.TotalApplications ?? 0;
+    var pendingApplications = ViewBag.PendingApplications ?? 0;
+    var acceptedApplications = ViewBag.AcceptedApplications ?? 0;
+    var activeJobs = ViewBag.ActiveJobs ?? 0;
+    var recentApplications = ViewBag.RecentApplications as List<StajPortal.Models.Entities.Application> ?? new List<StajPortal.Models.Entities.Application>();
+}
+
+<div class="container">
+    <!-- Karşılama -->
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            <i class="fas fa-home me-2"></i>Hoş Geldin, @Model.FullName! 👋
+        </h2>
+        <p class="text-muted">Staj başvurularınızı buradan takip edebilirsiniz.</p>
+    </div>
+
+    <!-- İstatistikler -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-alt fa-3x mb-3"></i>
+                    <h3 class="fw-bold mb-0">@totalApplications</h3>
+                    <p class="mb-0">Toplam Başvuru</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-warning text-dark">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-3x mb-3"></i>
+                    <h3 class="fw-bold mb-0">@pendingApplications</h3>
+                    <p class="mb-0">Bekleyen Başvuru</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-success text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-3x mb-3"></i>
+                    <h3 class="fw-bold mb-0">@acceptedApplications</h3>
+                    <p class="mb-0">Kabul Edildi</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0 bg-info text-white">
+                <div class="card-body text-center">
+                    <i class="fas fa-briefcase fa-3x mb-3"></i>
+                    <h3 class="fw-bold mb-0">@activeJobs</h3>
+                    <p class="mb-0">Aktif İlan</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hızlı Erişim -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <a asp-controller="Jobs" asp-action="Index" class="text-decoration-none">
+                <div class="card shadow-sm border-0 h-100 hover-card">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                        <h5 class="fw-bold">İlanları Ara</h5>
+                        <p class="text-muted">Yeni staj ilanlarını keşfet</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="Applications" class="text-decoration-none">
+                <div class="card shadow-sm border-0 h-100 hover-card">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-file-alt fa-3x text-warning mb-3"></i>
+                        <h5 class="fw-bold">Başvurularım</h5>
+                        <p class="text-muted">Başvurularını görüntüle</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a asp-action="Profile" class="text-decoration-none">
+                <div class="card shadow-sm border-0 h-100 hover-card">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-user fa-3x text-success mb-3"></i>
+                        <h5 class="fw-bold">Profilim</h5>
+                        <p class="text-muted">Bilgilerini güncelle</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Son Başvurular -->
+    @if (recentApplications.Any())
+    {
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-history me-2"></i>Son Başvurular
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>İlan</th>
+                                <th>Firma</th>
+                                <th>Tarih</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var app in recentApplications)
+                            {
+                                <tr>
+                                    <td>@app.JobPosting.Title</td>
+                                    <td>@app.JobPosting.Company.CompanyName</td>
+                                    <td>@app.AppliedAt.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        @if (app.Status == "Pending")
+                                        {
+                                            <span class="badge bg-warning text-dark">Beklemede</span>
+                                        }
+                                        else if (app.Status == "Accepted")
+                                        {
+                                            <span class="badge bg-success">Kabul Edildi</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Reddedildi</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Jobs" asp-action="Details" asp-route-id="@app.JobPosting.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye me-1"></i>Görüntüle
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .hover-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .hover-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15) !important;
+    }
+</style>

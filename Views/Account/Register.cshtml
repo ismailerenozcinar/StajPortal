@@ -1,0 +1,114 @@
+﻿@model StajPortal.Models.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "Kayıt Ol";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6">
+            <div class="card shadow-lg border-0">
+                <div class="card-body p-5">
+                    <div class="text-center mb-4">
+                        <h2 class="fw-bold text-primary">Kayıt Ol</h2>
+                        <p class="text-muted">Yeni hesap oluşturun</p>
+                    </div>
+
+                    <form asp-controller="Account" asp-action="Register" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                        <!-- Rol Seçimi -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-user-tag me-1"></i> Kayıt Tipi
+                            </label>
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="Role" id="roleStudent" value="Student" checked asp-for="Role" />
+                                    <label class="btn btn-outline-primary w-100 py-3" for="roleStudent">
+                                        <i class="fas fa-graduation-cap d-block fs-3 mb-2"></i>
+                                        <strong>Öğrenci</strong>
+                                    </label>
+                                </div>
+                                <div class="col-6">
+                                    <input type="radio" class="btn-check" name="Role" id="roleCompany" value="Company" asp-for="Role" />
+                                    <label class="btn btn-outline-primary w-100 py-3" for="roleCompany">
+                                        <i class="fas fa-building d-block fs-3 mb-2"></i>
+                                        <strong>Firma</strong>
+                                    </label>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Role" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Ad Soyad / Firma Adı -->
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label">
+                                <i class="fas fa-user me-1"></i> <span id="nameLabel">Ad Soyad</span>
+                            </label>
+                            <input asp-for="FullName" class="form-control form-control-lg" placeholder="Ad Soyad" id="fullNameInput" />
+                            <span asp-validation-for="FullName" class="text-danger small"></span>
+                        </div>
+
+                        <!-- E-posta -->
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">
+                                <i class="fas fa-envelope me-1"></i> E-posta
+                            </label>
+                            <input asp-for="Email" class="form-control form-control-lg" placeholder="ornek@email.com" />
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Şifre -->
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label">
+                                <i class="fas fa-lock me-1"></i> Şifre
+                            </label>
+                            <input asp-for="Password" class="form-control form-control-lg" placeholder="En az 6 karakter" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Şifre Tekrar -->
+                        <div class="mb-4">
+                            <label asp-for="ConfirmPassword" class="form-label">
+                                <i class="fas fa-lock me-1"></i> Şifre Tekrar
+                            </label>
+                            <input asp-for="ConfirmPassword" class="form-control form-control-lg" placeholder="Şifreyi tekrar girin" />
+                            <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-3">
+                            <i class="fas fa-user-plus me-2"></i>Kayıt Ol
+                        </button>
+
+                        <div class="text-center">
+                            <p class="mb-0">Zaten hesabınız var mı? 
+                                <a asp-action="Login" class="text-primary fw-bold">Giriş Yap</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script>
+        // Rol değişince label'ı güncelle
+        document.querySelectorAll('input[name="Role"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const nameLabel = document.getElementById('nameLabel');
+                const fullNameInput = document.getElementById('fullNameInput');
+                if (this.value === 'Company') {
+                    nameLabel.textContent = 'Firma Adı';
+                    fullNameInput.placeholder = 'Firma Adı';
+                } else {
+                    nameLabel.textContent = 'Ad Soyad';
+                    fullNameInput.placeholder = 'Ad Soyad';
+                }
+            });
+        });
+    </script>
+}

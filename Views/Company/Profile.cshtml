@@ -1,0 +1,103 @@
+@model StajPortal.Models.Entities.CompanyProfile
+@{
+    ViewData["Title"] = "Firma Profili";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4">
+                        <i class="fas fa-building me-2 text-primary"></i>
+                        Firma Profilim
+                    </h2>
+
+                    @if (Model == null)
+                    {
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Profil bilgileriniz bulunamadı.
+                        </div>
+                    }
+                    else
+                    {
+                        <form asp-action="Profile" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="Id" />
+                            <input type="hidden" asp-for="UserId" />
+
+                            <!-- Firma Adı -->
+                            <div class="mb-4">
+                                <label asp-for="CompanyName" class="form-label fw-bold">
+                                    <i class="fas fa-building me-1"></i>Firma Adı *
+                                </label>
+                                <input asp-for="CompanyName" class="form-control form-control-lg" required />
+                            </div>
+
+                            <!-- Sektör ve Şehir -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label asp-for="Industry" class="form-label fw-bold">
+                                        <i class="fas fa-industry me-1"></i>Sektör
+                                    </label>
+                                    <input asp-for="Industry" class="form-control" placeholder="Örn: Yazılım" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="City" class="form-label fw-bold">
+                                        <i class="fas fa-map-marker-alt me-1"></i>Şehir
+                                    </label>
+                                    <input asp-for="City" class="form-control" placeholder="Örn: İstanbul" />
+                                </div>
+                            </div>
+
+                            <!-- Adres -->
+                            <div class="mb-4">
+                                <label asp-for="Address" class="form-label fw-bold">
+                                    <i class="fas fa-map-marked-alt me-1"></i>Adres
+                                </label>
+                                <input asp-for="Address" class="form-control" />
+                            </div>
+
+                            <!-- Telefon ve Website -->
+                            <div class="row mb-4">
+                                <div class="col-md-6">
+                                    <label asp-for="Phone" class="form-label fw-bold">
+                                        <i class="fas fa-phone me-1"></i>Telefon
+                                    </label>
+                                    <input asp-for="Phone" class="form-control" placeholder="0555 555 5555" />
+                                </div>
+                                <div class="col-md-6">
+                                    <label asp-for="Website" class="form-label fw-bold">
+                                        <i class="fas fa-globe me-1"></i>Website
+                                    </label>
+                                    <input asp-for="Website" class="form-control" placeholder="https://www.firma.com" />
+                                </div>
+                            </div>
+
+                            <!-- Hakkında -->
+                            <div class="mb-4">
+                                <label asp-for="About" class="form-label fw-bold">
+                                    <i class="fas fa-info-circle me-1"></i>Firma Hakkında
+                                </label>
+                                <textarea asp-for="About" class="form-control" rows="5" 
+                                          placeholder="Firmanız hakkında bilgi verin..."></textarea>
+                            </div>
+
+                            <!-- Butonlar -->
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Profili Güncelle
+                                </button>
+                                <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Geri Dön
+                                </a>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

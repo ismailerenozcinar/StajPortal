@@ -1,0 +1,108 @@
+@model StajPortal.Models.ViewModels.JobPostingViewModel
+@{
+    ViewData["Title"] = "Yeni İlan Ekle";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5">
+                    <h2 class="fw-bold mb-4">
+                        <i class="fas fa-plus-circle me-2 text-success"></i>
+                        Yeni Staj İlanı Oluştur
+                    </h2>
+
+                    <form asp-action="PostJob" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+                        <!-- İlan Başlığı -->
+                        <div class="mb-4">
+                            <label asp-for="Title" class="form-label fw-bold">
+                                <i class="fas fa-heading me-1"></i>İlan Başlığı *
+                            </label>
+                            <input asp-for="Title" class="form-control form-control-lg" placeholder="Örn: Backend Developer Stajyeri" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
+                        </div>
+
+                        <!-- Açıklama -->
+                        <div class="mb-4">
+                            <label asp-for="Description" class="form-label fw-bold">
+                                <i class="fas fa-align-left me-1"></i>İlan Açıklaması *
+                            </label>
+                            <textarea asp-for="Description" class="form-control" rows="8" 
+                                      placeholder="İş tanımı, aranan özellikler, stajyere sağlanacak olanaklar..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
+                            <small class="form-text text-muted">Minimum 50 karakter</small>
+                        </div>
+
+                        <!-- Departman ve Şehir -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="Department" class="form-label fw-bold">
+                                    <i class="fas fa-tag me-1"></i>Departman
+                                </label>
+                                <input asp-for="Department" class="form-control" placeholder="Örn: Yazılım Geliştirme" />
+                                <span asp-validation-for="Department" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="City" class="form-label fw-bold">
+                                    <i class="fas fa-map-marker-alt me-1"></i>Şehir
+                                </label>
+                                <input asp-for="City" class="form-control" placeholder="Örn: İstanbul" />
+                                <span asp-validation-for="City" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- Tarihler -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label asp-for="StartDate" class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-1"></i>Başlangıç Tarihi
+                                </label>
+                                <input asp-for="StartDate" type="date" class="form-control" />
+                                <span asp-validation-for="StartDate" class="text-danger small"></span>
+                            </div>
+                            <div class="col-md-6">
+                                <label asp-for="EndDate" class="form-label fw-bold">
+                                    <i class="fas fa-calendar-check me-1"></i>Bitiş Tarihi
+                                </label>
+                                <input asp-for="EndDate" type="date" class="form-control" />
+                                <span asp-validation-for="EndDate" class="text-danger small"></span>
+                            </div>
+                        </div>
+
+                        <!-- İlan Durumu -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" checked />
+                                <label asp-for="IsActive" class="form-check-label">
+                                    İlan aktif olsun
+                                </label>
+                            </div>
+                            <small class="form-text text-muted">
+                                Admin onayından sonra yayınlanacaktır.
+                            </small>
+                        </div>
+
+                        <!-- Butonlar -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-check me-2"></i>İlanı Yayınla
+                            </button>
+                            <a asp-action="Dashboard" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>İptal
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
+
