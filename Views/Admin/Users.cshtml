@@ -1,0 +1,365 @@
+@model IEnumerable<StajPortal.Models.Entities.ApplicationUser>
+@{
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+}
+
+<div class="container-fluid py-4">
+    <!-- Başlık ve Breadcrumb -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Dashboard">Admin Panel</a></li>
+                    <li class="breadcrumb-item active">Kullanıcılar</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold">
+                <i class="fas fa-users text-primary me-2"></i>
+                Kullanıcı Yönetimi
+            </h2>
+            <p class="text-muted">Sistemdeki tüm kullanıcıları görüntüleyin ve yönetin</p>
+        </div>
+    </div>
+
+    <!-- Bildirim Mesajları -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- İstatistik Kartları -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-users fa-2x opacity-75"></i>
+                        <div class="ms-3">
+                            <h4 class="mb-0">@ViewBag.TotalCount</h4>
+                            <small>Toplam</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm bg-info text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-graduate fa-2x opacity-75"></i>
+                        <div class="ms-3">
+                            <h4 class="mb-0">@ViewBag.StudentCount</h4>
+                            <small>Öğrenci</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm bg-success text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-building fa-2x opacity-75"></i>
+                        <div class="ms-3">
+                            <h4 class="mb-0">@ViewBag.CompanyCount</h4>
+                            <small>Firma</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm bg-danger text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-user-shield fa-2x opacity-75"></i>
+                        <div class="ms-3">
+                            <h4 class="mb-0">@ViewBag.AdminCount</h4>
+                            <small>Admin</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm bg-secondary text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                        <div class="ms-3">
+                            <h4 class="mb-0">@ViewBag.ActiveCount</h4>
+                            <small>Aktif</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card border-0 shadow-sm bg-dark text-white">
+                <div class="card-body py-3">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-ban fa-2x opacity-75"></i>
+                        <div class="ms-3">
+                            <h4 class="mb-0">@ViewBag.InactiveCount</h4>
+                            <small>Pasif</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtreler -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Users">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-search text-muted me-1"></i>Arama
+                        </label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Ad, soyad veya e-posta..." 
+                               value="@ViewBag.SearchTerm">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-user-tag text-muted me-1"></i>Rol
+                        </label>
+                        <select name="role" class="form-select">
+                            <option value="">Tümü</option>
+                            <option value="Student" selected="@(ViewBag.SelectedRole == "Student")">Öğrenci</option>
+                            <option value="Company" selected="@(ViewBag.SelectedRole == "Company")">Firma</option>
+                            <option value="Admin" selected="@(ViewBag.SelectedRole == "Admin")">Admin</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-toggle-on text-muted me-1"></i>Durum
+                        </label>
+                        <select name="status" class="form-select">
+                            <option value="">Tümü</option>
+                            <option value="active" selected="@(ViewBag.SelectedStatus == "active")">Aktif</option>
+                            <option value="inactive" selected="@(ViewBag.SelectedStatus == "inactive")">Pasif</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <div class="d-grid gap-2 w-100">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter me-1"></i>Filtrele
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Kullanıcı Listesi -->
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-white py-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="fas fa-list me-2"></i>Kullanıcılar
+                </h5>
+                <span class="badge bg-primary">@Model.Count() kullanıcı</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th scope="col" style="width: 50px;"></th>
+                                <th scope="col">Kullanıcı</th>
+                                <th scope="col">E-posta</th>
+                                <th scope="col">Rol</th>
+                                <th scope="col">Kayıt Tarihi</th>
+                                <th scope="col">Durum</th>
+                                <th scope="col" class="text-center">İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td class="align-middle">
+                                        <div class="rounded-circle bg-@(user.Role == "Student" ? "info" : user.Role == "Company" ? "success" : "danger") text-white d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px;">
+                                            @if (user.Role == "Student")
+                                            {
+                                                <i class="fas fa-user-graduate"></i>
+                                            }
+                                            else if (user.Role == "Company")
+                                            {
+                                                <i class="fas fa-building"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-user-shield"></i>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <div>
+                                            <strong>@(user.FullName ?? "İsimsiz")</strong>
+                                            @if (user.Role == "Student" && user.StudentProfile != null)
+                                            {
+                                                <br><small class="text-muted">@user.StudentProfile.University</small>
+                                            }
+                                            else if (user.Role == "Company" && user.CompanyProfile != null)
+                                            {
+                                                <br><small class="text-muted">@user.CompanyProfile.Industry</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td class="align-middle">
+                                        <a href="mailto:@user.Email" class="text-decoration-none">
+                                            @user.Email
+                                        </a>
+                                    </td>
+                                    <td class="align-middle">
+                                        @if (user.Role == "Student")
+                                        {
+                                            <span class="badge bg-info">Öğrenci</span>
+                                        }
+                                        else if (user.Role == "Company")
+                                        {
+                                            <span class="badge bg-success">Firma</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Admin</span>
+                                        }
+                                    </td>
+                                    <td class="align-middle">
+                                        <small>
+                                            @user.CreatedAt.ToString("dd.MM.yyyy")
+                                            <br>
+                                            <span class="text-muted">@user.CreatedAt.ToString("HH:mm")</span>
+                                        </small>
+                                    </td>
+                                    <td class="align-middle">
+                                        @if (user.IsActive)
+                                        {
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check-circle me-1"></i>Aktif
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">
+                                                <i class="fas fa-ban me-1"></i>Pasif
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="align-middle text-center">
+                                        <div class="btn-group" role="group">
+                                            <a asp-action="UserDetails" asp-route-id="@user.Id" 
+                                               class="btn btn-sm btn-outline-primary" title="Detay">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if (user.Role != "Admin")
+                                            {
+                                                <form asp-action="ToggleUserStatus" method="post" class="d-inline">
+                                                    <input type="hidden" name="id" value="@user.Id" />
+                                                    <button type="submit" 
+                                                            class="btn btn-sm @(user.IsActive ? "btn-outline-warning" : "btn-outline-success")" 
+                                                            title="@(user.IsActive ? "Pasif Yap" : "Aktif Yap")">
+                                                        <i class="fas @(user.IsActive ? "fa-toggle-off" : "fa-toggle-on")"></i>
+                                                    </button>
+                                                </form>
+                                                <button type="button" 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target="#deleteModal-@user.Id"
+                                                        title="Sil">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            }
+                                        </div>
+                                        
+                                        <!-- Delete Modal -->
+                                        @if (user.Role != "Admin")
+                                        {
+                                            <div class="modal fade" id="deleteModal-@user.Id" tabindex="-1">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header border-0">
+                                                            <h5 class="modal-title">
+                                                                <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                                                                Kullanıcı Silme
+                                                            </h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p>
+                                                                <strong>@(user.FullName ?? user.Email)</strong> kullanıcısını silmek istediğinize emin misiniz?
+                                                            </p>
+                                                            <div class="alert alert-warning mb-0">
+                                                                <i class="fas fa-info-circle me-2"></i>
+                                                                Bu işlem geri alınamaz. Kullanıcıya ait tüm veriler silinecektir.
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer border-0">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                            <form asp-action="DeleteUser" method="post" class="d-inline">
+                                                                <input type="hidden" name="id" value="@user.Id" />
+                                                                <button type="submit" class="btn btn-danger">
+                                                                    <i class="fas fa-trash me-1"></i>Sil
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Kullanıcı Bulunamadı</h5>
+                    <p class="text-muted">Filtreleri değiştirerek tekrar deneyin.</p>
+                    <a asp-action="Users" class="btn btn-outline-primary">
+                        <i class="fas fa-redo me-1"></i>Filtreleri Temizle
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .table td {
+        vertical-align: middle;
+    }
+    .btn-group .btn {
+        border-radius: 0.25rem !important;
+        margin: 0 1px;
+    }
+</style>

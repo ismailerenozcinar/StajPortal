@@ -1,0 +1,54 @@
+﻿/* css/styles.css */
+:root {
+    --bg: #f8f9fa;
+    --card-bg: #ffffff;
+    --text: #212529;
+    --muted: #6c757d;
+    --accent: #0d6efd;
+}
+
+.light-mode {
+    background: var(--bg);
+    color: var(--text);
+}
+
+.dark-mode {
+    --bg: #0b1220;
+    --card-bg: #071021;
+    --text: #e9eef8;
+    --muted: #98a2b3;
+    --accent: #4dabf7;
+    background: var(--bg);
+    color: var(--text);
+}
+
+.card {
+    background: var(--card-bg);
+}
+
+.job-card .badge {
+    background: rgba(13,110,253,0.12);
+    color: var(--accent);
+}
+
+.stat-card {
+    min-height: 100px;
+}
+
+.hero {
+    background: linear-gradient(90deg, rgba(13,110,253,0.08), rgba(13,110,253,0.02));
+    padding: 3rem;
+    border-radius: .75rem;
+}
+
+.small-muted {
+    color: var(--muted);
+    font-size: .9rem;
+}
+
+.profile-avatar {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    object-fit: cover;
+}

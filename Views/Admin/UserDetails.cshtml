@@ -1,0 +1,351 @@
+@model StajPortal.Models.Entities.ApplicationUser
+@{
+    ViewData["Title"] = "Kullanıcı Detayı";
+}
+
+<div class="container-fluid py-4">
+    <!-- Başlık ve Breadcrumb -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Dashboard">Admin Panel</a></li>
+                    <li class="breadcrumb-item"><a asp-action="Users">Kullanıcılar</a></li>
+                    <li class="breadcrumb-item active">@(Model.FullName ?? "Kullanıcı Detayı")</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sol: Kullanıcı Bilgileri -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body text-center p-4">
+                    <!-- Avatar -->
+                    <div class="rounded-circle bg-@(Model.Role == "Student" ? "info" : Model.Role == "Company" ? "success" : "danger") text-white d-flex align-items-center justify-content-center mx-auto mb-3" 
+                         style="width: 100px; height: 100px; font-size: 40px;">
+                        @if (Model.Role == "Student")
+                        {
+                            <i class="fas fa-user-graduate"></i>
+                        }
+                        else if (Model.Role == "Company")
+                        {
+                            <i class="fas fa-building"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-user-shield"></i>
+                        }
+                    </div>
+
+                    <h4 class="mb-1">@(Model.FullName ?? "İsimsiz")</h4>
+                    <p class="text-muted mb-3">@Model.Email</p>
+
+                    <!-- Rol Badge -->
+                    @if (Model.Role == "Student")
+                    {
+                        <span class="badge bg-info fs-6 px-3 py-2">
+                            <i class="fas fa-user-graduate me-1"></i>Öğrenci
+                        </span>
+                    }
+                    else if (Model.Role == "Company")
+                    {
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="fas fa-building me-1"></i>Firma
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger fs-6 px-3 py-2">
+                            <i class="fas fa-user-shield me-1"></i>Admin
+                        </span>
+                    }
+
+                    <hr class="my-4">
+
+                    <!-- Durum -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Durum</span>
+                        @if (Model.IsActive)
+                        {
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Aktif
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-ban me-1"></i>Pasif
+                            </span>
+                        }
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-muted">Kayıt Tarihi</span>
+                        <span>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                    </div>
+
+                    <!-- İşlem Butonları -->
+                    @if (Model.Role != "Admin")
+                    {
+                        <hr class="my-4">
+                        <div class="d-grid gap-2">
+                            <form asp-action="ToggleUserStatus" method="post">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <button type="submit" class="btn w-100 @(Model.IsActive ? "btn-warning" : "btn-success")">
+                                    <i class="fas @(Model.IsActive ? "fa-toggle-off" : "fa-toggle-on") me-2"></i>
+                                    @(Model.IsActive ? "Pasif Yap" : "Aktif Yap")
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                                <i class="fas fa-trash me-2"></i>Kullanıcıyı Sil
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Geri Dön -->
+            <a asp-action="Users" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-arrow-left me-2"></i>Kullanıcılara Dön
+            </a>
+        </div>
+
+        <!-- Sağ: Profil Detayları -->
+        <div class="col-lg-8">
+            @if (Model.Role == "Student" && Model.StudentProfile != null)
+            {
+                <!-- Öğrenci İstatistikleri -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file-alt fa-2x opacity-75"></i>
+                                    <div class="ms-3">
+                                        <h3 class="mb-0">@ViewBag.ApplicationCount</h3>
+                                        <small>Toplam Başvuru</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-check-circle fa-2x opacity-75"></i>
+                                    <div class="ms-3">
+                                        <h3 class="mb-0">@ViewBag.AcceptedCount</h3>
+                                        <small>Kabul Edilen</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Öğrenci Profil Bilgileri -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-graduate text-info me-2"></i>Öğrenci Profili
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Ad Soyad</label>
+                                <p class="mb-0 fw-semibold">@(Model.StudentProfile.FullName ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Telefon</label>
+                                <p class="mb-0">@(Model.StudentProfile.Phone ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Üniversite</label>
+                                <p class="mb-0">@(Model.StudentProfile.University ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Bölüm</label>
+                                <p class="mb-0">@(Model.StudentProfile.Department ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Mezuniyet Yılı</label>
+                                <p class="mb-0">@(Model.StudentProfile.GraduationYear?.ToString() ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Not Ortalaması (GPA)</label>
+                                <p class="mb-0">@(Model.StudentProfile.GPA?.ToString("F2") ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Şehir</label>
+                                <p class="mb-0">@(Model.StudentProfile.City ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">CV Linki</label>
+                                @if (!string.IsNullOrEmpty(Model.StudentProfile.CVLink))
+                                {
+                                    <p class="mb-0">
+                                        <a href="@Model.StudentProfile.CVLink" target="_blank" class="text-decoration-none">
+                                            <i class="fas fa-external-link-alt me-1"></i>CV'yi Görüntüle
+                                        </a>
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="mb-0 text-muted">-</p>
+                                }
+                            </div>
+                            <div class="col-12">
+                                <label class="text-muted small">Hakkında</label>
+                                <p class="mb-0">@(Model.StudentProfile.About ?? "-")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.Role == "Company" && Model.CompanyProfile != null)
+            {
+                <!-- Firma İstatistikleri -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm bg-success text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-briefcase fa-2x opacity-75"></i>
+                                    <div class="ms-3">
+                                        <h3 class="mb-0">@ViewBag.JobCount</h3>
+                                        <small>Toplam İlan</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card border-0 shadow-sm bg-primary text-white">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-file-alt fa-2x opacity-75"></i>
+                                    <div class="ms-3">
+                                        <h3 class="mb-0">@ViewBag.ApplicationCount</h3>
+                                        <small>Alınan Başvuru</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Firma Profil Bilgileri -->
+                <div class="card shadow-sm border-0">
+                    <div class="card-header bg-white py-3">
+                        <h5 class="mb-0">
+                            <i class="fas fa-building text-success me-2"></i>Firma Profili
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="text-muted small">Firma Adı</label>
+                                <p class="mb-0 fw-semibold">@(Model.CompanyProfile.CompanyName ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Sektör</label>
+                                <p class="mb-0">@(Model.CompanyProfile.Industry ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Telefon</label>
+                                <p class="mb-0">@(Model.CompanyProfile.Phone ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Web Sitesi</label>
+                                @if (!string.IsNullOrEmpty(Model.CompanyProfile.Website))
+                                {
+                                    <p class="mb-0">
+                                        <a href="@Model.CompanyProfile.Website" target="_blank" class="text-decoration-none">
+                                            <i class="fas fa-external-link-alt me-1"></i>@Model.CompanyProfile.Website
+                                        </a>
+                                    </p>
+                                }
+                                else
+                                {
+                                    <p class="mb-0 text-muted">-</p>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Şehir</label>
+                                <p class="mb-0">@(Model.CompanyProfile.City ?? "-")</p>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small">Adres</label>
+                                <p class="mb-0">@(Model.CompanyProfile.Address ?? "-")</p>
+                            </div>
+                            <div class="col-12">
+                                <label class="text-muted small">Hakkında</label>
+                                <p class="mb-0">@(Model.CompanyProfile.About ?? "-")</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (Model.Role == "Admin")
+            {
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-user-shield fa-4x text-danger mb-3"></i>
+                        <h4>Admin Kullanıcı</h4>
+                        <p class="text-muted">Bu kullanıcı sistem yöneticisidir.</p>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card shadow-sm border-0">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-user fa-4x text-muted mb-3"></i>
+                        <h4>Profil Bilgisi Yok</h4>
+                        <p class="text-muted">Bu kullanıcının profil bilgileri henüz oluşturulmamış.</p>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+@if (Model.Role != "Admin")
+{
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle text-danger me-2"></i>
+                        Kullanıcı Silme
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        <strong>@(Model.FullName ?? Model.Email)</strong> kullanıcısını silmek istediğinize emin misiniz?
+                    </p>
+                    <div class="alert alert-warning mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Bu işlem geri alınamaz. Kullanıcıya ait tüm veriler silinecektir.
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <form asp-action="DeleteUser" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-1"></i>Sil
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+}

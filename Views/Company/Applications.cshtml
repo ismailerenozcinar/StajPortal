@@ -1,0 +1,274 @@
+@model List<StajPortal.Models.Entities.Application>
+@{
+    ViewData["Title"] = "Başvurular";
+    var jobs = ViewBag.Jobs as List<StajPortal.Models.Entities.JobPosting>;
+}
+
+<div class="container-fluid">
+    <div class="mb-4">
+        <h2 class="fw-bold">
+            <i class="fas fa-file-alt me-2"></i>Gelen Başvurular
+        </h2>
+        <p class="text-muted">Toplam @Model.Count başvuru</p>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (Model != null && Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Öğrenci</th>
+                        <th>İlan</th>
+                        <th>Başvuru Tarihi</th>
+                        <th>Durum</th>
+                        <th>İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var app in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong>@app.Student.FullName</strong><br/>
+                                <small class="text-muted">@app.Student.User.Email</small>
+                            </td>
+                            <td>@app.JobPosting.Title</td>
+                            <td>@app.AppliedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (app.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark">Beklemede</span>
+                                }
+                                else if (app.Status == "Accepted")
+                                {
+                                    <span class="badge bg-success">Kabul Edildi</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger">Reddedildi</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <!-- Detay Görüntüle -->
+                                    <button class="btn btn-outline-info" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detailsModal@(app.Id)"
+                                            title="Detayları Gör">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+
+                                    @if (app.Status == "Pending")
+                                    {
+                                        <!-- Onayla -->
+                                        <form asp-action="AcceptApplication" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@app.Id" />
+                                            <button type="submit" 
+                                                    class="btn btn-outline-success" 
+                                                    onclick="return confirm('Bu başvuruyu kabul etmek istediğinizden emin misiniz?')"
+                                                    title="Kabul Et">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
+
+                                        <!-- Reddet -->
+                                        <button class="btn btn-outline-danger" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#rejectModal@(app.Id)"
+                                                title="Reddet">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    }
+                                    else if (app.Status == "Accepted")
+                                    {
+                                        <button class="btn btn-success btn-sm" disabled title="Kabul Edildi">
+                                            <i class="fas fa-check-circle"></i> Kabul Edildi
+                                        </button>
+                                    }
+                                    else if (app.Status == "Rejected")
+                                    {
+                                        <button class="btn btn-danger btn-sm" disabled title="Reddedildi">
+                                            <i class="fas fa-times-circle"></i> Reddedildi
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Detay Modal -->
+                        <div class="modal fade" id="detailsModal@(app.Id)" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title">
+                                            <i class="fas fa-user-graduate me-2"></i>Başvuru Detayları
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold text-primary"><i class="fas fa-user me-2"></i>Öğrenci Bilgileri</h6>
+                                                <p class="mb-2"><strong>Ad Soyad:</strong> @app.Student.FullName</p>
+                                                <p class="mb-2"><strong>E-posta:</strong> @app.Student.User.Email</p>
+                                                <p class="mb-2"><strong>Telefon:</strong> @(app.Student.Phone ?? "Belirtilmemiş")</p>
+                                                <p class="mb-2"><strong>Şehir:</strong> @(app.Student.City ?? "Belirtilmemiş")</p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="fw-bold text-primary"><i class="fas fa-graduation-cap me-2"></i>Eğitim Bilgileri</h6>
+                                                <p class="mb-2"><strong>Üniversite:</strong> @(app.Student.University ?? "Belirtilmemiş")</p>
+                                                <p class="mb-2"><strong>Bölüm:</strong> @(app.Student.Department ?? "Belirtilmemiş")</p>
+                                                <p class="mb-2"><strong>Mezuniyet Yılı:</strong> @(app.Student.GraduationYear?.ToString() ?? "Belirtilmemiş")</p>
+                                                @if (app.Student.GPA.HasValue)
+                                                {
+                                                    <p class="mb-2"><strong>GPA:</strong> @app.Student.GPA.Value.ToString("0.00")</p>
+                                                }
+                                            </div>
+                                        </div>
+
+                                        @if (!string.IsNullOrEmpty(app.Student.CVLink))
+                                        {
+                                            <hr />
+                                            <h6 class="fw-bold text-primary"><i class="fas fa-file-pdf me-2"></i>CV</h6>
+                                            <p>
+                                                <a href="@app.Student.CVLink" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-external-link-alt me-1"></i>CV'yi Görüntüle
+                                                </a>
+                                            </p>
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(app.Student.About))
+                                        {
+                                            <hr />
+                                            <h6 class="fw-bold text-primary"><i class="fas fa-info-circle me-2"></i>Hakkında</h6>
+                                            <p style="white-space: pre-wrap;">@app.Student.About</p>
+                                        }
+
+                                        <hr />
+                                        <h6 class="fw-bold text-primary"><i class="fas fa-briefcase me-2"></i>Başvuru Bilgileri</h6>
+                                        <p class="mb-2"><strong>İlan:</strong> @app.JobPosting.Title</p>
+                                        <p class="mb-2"><strong>Başvuru Tarihi:</strong> @app.AppliedAt.ToString("dd MMMM yyyy HH:mm")</p>
+                                        <p class="mb-2">
+                                            <strong>Durum:</strong> 
+                                            @if (app.Status == "Pending")
+                                            {
+                                                <span class="badge bg-warning text-dark">Beklemede</span>
+                                            }
+                                            else if (app.Status == "Accepted")
+                                            {
+                                                <span class="badge bg-success">Kabul Edildi</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Reddedildi</span>
+                                            }
+                                        </p>
+                                        @if (app.ReviewedAt.HasValue)
+                                        {
+                                            <p class="mb-2"><strong>İncelenme Tarihi:</strong> @app.ReviewedAt.Value.ToString("dd MMMM yyyy HH:mm")</p>
+                                        }
+                                        @if (!string.IsNullOrEmpty(app.ReviewNote))
+                                        {
+                                            <p class="mb-2"><strong>Not:</strong> @app.ReviewNote</p>
+                                        }
+                                    </div>
+                                    <div class="modal-footer">
+                                        @if (app.Status == "Pending")
+                                        {
+                                            <form asp-action="AcceptApplication" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@app.Id" />
+                                                <button type="submit" 
+                                                        class="btn btn-success" 
+                                                        onclick="return confirm('Bu başvuruyu kabul etmek istediğinizden emin misiniz?')">
+                                                    <i class="fas fa-check me-1"></i>Kabul Et
+                                                </button>
+                                            </form>
+                                            <button type="button" 
+                                                    class="btn btn-danger" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#rejectModal@(app.Id)"
+                                                    data-bs-dismiss="modal">
+                                                <i class="fas fa-times me-1"></i>Reddet
+                                            </button>
+                                        }
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Reddetme Modal -->
+                        <div class="modal fade" id="rejectModal@(app.Id)" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <form asp-action="RejectApplication" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@app.Id" />
+                                        <div class="modal-header bg-danger text-white">
+                                            <h5 class="modal-title">
+                                                <i class="fas fa-times-circle me-2"></i>Başvuruyu Reddet
+                                            </h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p class="mb-3">
+                                                <strong>@app.Student.FullName</strong> adlı öğrencinin başvurusunu reddetmek istediğinizden emin misiniz?
+                                            </p>
+                                            <div class="mb-3">
+                                                <label for="note@(app.Id)" class="form-label">
+                                                    Ret Nedeni (Opsiyonel)
+                                                </label>
+                                                <textarea class="form-control" 
+                                                          id="note@(app.Id)" 
+                                                          name="note" 
+                                                          rows="3" 
+                                                          placeholder="Öğrenciye gönderilecek ret nedeni..."></textarea>
+                                                <small class="text-muted">Bu not öğrenciye gösterilecektir.</small>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-times me-1"></i>Reddet
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-5x text-muted mb-3"></i>
+            <h4>Henüz başvuru yok</h4>
+            <p class="text-muted">İlanlarınıza başvurular geldiğinde burada görünecek.</p>
+        </div>
+    }
+</div>
+

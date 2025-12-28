@@ -1,0 +1,141 @@
+@model List<StajPortal.Models.Entities.JobPosting>
+@{
+    ViewData["Title"] = "Staj İlanları";
+}
+
+<div class="container">
+    <!-- Başlık ve Arama -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">
+                <i class="fas fa-briefcase me-2"></i>Staj İlanları
+            </h2>
+            <p class="text-muted">@ViewBag.TotalJobs adet ilan bulundu</p>
+        </div>
+    </div>
+
+    <!-- Filtreleme -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <form method="get" asp-action="Index">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Arama</label>
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Pozisyon, firma..." 
+                               value="@ViewBag.SearchTerm" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Şehir</label>
+                        <input type="text" name="city" class="form-control" 
+                               placeholder="Şehir" 
+                               value="@ViewBag.City" />
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Departman</label>
+                        <input type="text" name="department" class="form-control" 
+                               placeholder="Departman" 
+                               value="@ViewBag.Department" />
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Ara
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- İlan Listesi -->
+    @if (Model != null && Model.Any())
+    {
+        <div class="row g-4">
+            @foreach (var job in Model)
+            {
+                <div class="col-md-6">
+                    <div class="card h-100 shadow-sm border-0 hover-card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="flex-grow-1 job-title-container me-2">
+                                    <h5 class="card-title fw-bold text-primary mb-1">
+                                        <a asp-action="Details" asp-route-id="@job.Id" class="text-decoration-none text-primary job-title" title="@job.Title">
+                                            @job.Title
+                                        </a>
+                                    </h5>
+                                    <p class="text-muted mb-0 job-company" title="@job.Company.CompanyName">
+                                        <i class="fas fa-building me-1"></i>@job.Company.CompanyName
+                                    </p>
+                                </div>
+                                <span class="badge bg-success flex-shrink-0">Aktif</span>
+                            </div>
+                            
+                            <p class="card-text text-muted mb-3 job-description">
+                                @job.Description
+                            </p>
+
+                            <div class="d-flex align-items-center text-muted small mb-3">
+                                <span class="me-3">
+                                    <i class="fas fa-map-marker-alt me-1"></i>@job.City
+                                </span>
+                                <span class="me-3">
+                                    <i class="fas fa-tag me-1"></i>@job.Department
+                                </span>
+                                <span class="ms-auto text-end">
+                                    <i class="fas fa-calendar me-1"></i>@job.CreatedAt.ToString("dd MMM yyyy")
+                                </span>
+                            </div>
+
+                            <a asp-action="Details" asp-route-id="@job.Id" class="btn btn-primary w-100">
+                                <i class="fas fa-eye me-1"></i>Detayları Gör
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            Arama kriterlerinize uygun ilan bulunamadı.
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <style>
+        .hover-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .hover-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+        }
+        .job-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 100%;
+            display: block;
+        }
+        .job-title-container {
+            min-width: 0;
+            overflow: hidden;
+        }
+        .job-company {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .job-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
+    </style>
+}
+
