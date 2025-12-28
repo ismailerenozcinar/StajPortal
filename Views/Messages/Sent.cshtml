@@ -1,0 +1,97 @@
+@model IEnumerable<StajPortal.Models.Entities.Message>
+@{
+    ViewData["Title"] = "Gönderilen Mesajlar";
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2 class="fw-bold">
+                    <i class="fas fa-paper-plane text-success me-2"></i>
+                    Gönderilen Mesajlar
+                </h2>
+                <a asp-action="Compose" class="btn btn-primary">
+                    <i class="fas fa-pen me-1"></i>Yeni Mesaj
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Tablar -->
+    <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+            <a class="nav-link" asp-action="Inbox">
+                <i class="fas fa-inbox me-1"></i>Gelen Kutusu
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link active" asp-action="Sent">
+                <i class="fas fa-paper-plane me-1"></i>Gönderilen
+            </a>
+        </li>
+    </ul>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var message in Model)
+                    {
+                        <a asp-action="Details" asp-route-id="@message.Id" 
+                           class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <div class="me-3">
+                                        <i class="fas fa-user-circle fa-2x text-muted"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1">
+                                            <span class="text-muted">Kime:</span> @message.Receiver.FullName
+                                        </h6>
+                                        <p class="mb-1 text-truncate" style="max-width: 400px;">
+                                            @(message.Subject ?? "(Konusuz)")
+                                        </p>
+                                        <small class="text-muted text-truncate d-block" style="max-width: 500px;">
+                                            @(message.Content.Length > 100 ? message.Content.Substring(0, 100) + "..." : message.Content)
+                                        </small>
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <small class="text-muted d-block">@message.SentAt.ToString("dd.MM.yyyy HH:mm")</small>
+                                    @if (message.IsRead)
+                                    {
+                                        <small class="text-success"><i class="fas fa-check-double"></i> Okundu</small>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted"><i class="fas fa-check"></i> Gönderildi</small>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-paper-plane fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">Henüz mesaj göndermediniz</h5>
+                    <a asp-action="Compose" class="btn btn-primary mt-2">
+                        <i class="fas fa-pen me-1"></i>İlk Mesajı Gönder
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,111 @@
+@{
+    ViewData["Title"] = "Yeni Mesaj";
+    var users = ViewBag.Users as List<StajPortal.Models.Entities.ApplicationUser>;
+    var selectedTo = ViewBag.To as string;
+    var subject = ViewBag.Subject as string;
+    var originalMessage = ViewBag.OriginalMessage as StajPortal.Models.Entities.Message;
+}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a asp-action="Inbox">Gelen Kutusu</a></li>
+                    <li class="breadcrumb-item active">Yeni Mesaj</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold">
+                <i class="fas fa-pen text-primary me-2"></i>
+                @(originalMessage != null ? "Mesajı Yanıtla" : "Yeni Mesaj")
+            </h2>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @if (originalMessage != null)
+            {
+                <div class="card shadow-sm border-0 mb-4 bg-light">
+                    <div class="card-body">
+                        <h6 class="text-muted mb-2">
+                            <i class="fas fa-reply me-1"></i>Yanıtlanacak Mesaj:
+                        </h6>
+                        <p class="mb-1"><strong>@originalMessage.Sender.FullName</strong> yazdı:</p>
+                        <p class="text-muted mb-0" style="white-space: pre-wrap; max-height: 100px; overflow-y: auto;">
+                            @originalMessage.Content
+                        </p>
+                    </div>
+                </div>
+            }
+
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <form asp-action="Compose" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label for="receiverId" class="form-label">
+                                <i class="fas fa-user me-1"></i>Alıcı <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="receiverId" name="receiverId" required>
+                                <option value="">-- Alıcı Seçin --</option>
+                                @if (users != null)
+                                {
+                                    var groupedUsers = users.GroupBy(u => u.Role);
+                                    foreach (var group in groupedUsers)
+                                    {
+                                        var roleLabel = group.Key == "Student" ? "Öğrenciler" : 
+                                                       group.Key == "Company" ? "Firmalar" : group.Key;
+                                        <optgroup label="@roleLabel">
+                                            @foreach (var user in group)
+                                            {
+                                                <option value="@user.Id" selected="@(selectedTo == user.Id)">
+                                                    @user.FullName (@user.Email)
+                                                </option>
+                                            }
+                                        </optgroup>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="subject" class="form-label">
+                                <i class="fas fa-heading me-1"></i>Konu
+                            </label>
+                            <input type="text" class="form-control" id="subject" name="subject" 
+                                   value="@subject" placeholder="Mesaj konusu (opsiyonel)" maxlength="200">
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="content" class="form-label">
+                                <i class="fas fa-comment me-1"></i>Mesaj <span class="text-danger">*</span>
+                            </label>
+                            <textarea class="form-control" id="content" name="content" rows="8" 
+                                      placeholder="Mesajınızı yazın..." required maxlength="5000"></textarea>
+                            <small class="text-muted">Maksimum 5000 karakter</small>
+                        </div>
+
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Inbox" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>İptal
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-1"></i>Gönder
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

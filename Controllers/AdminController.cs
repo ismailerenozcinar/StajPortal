@@ -392,8 +392,55 @@ namespace StajPortal.Controllers
             return RedirectToAction(nameof(JobApplications), new { id = jobId });
         }
 
-        public IActionResult Reports()
+        public async Task<IActionResult> Reports()
         {
+            // Genel İstatistikler
+            ViewBag.TotalUsers = await _context.Users.CountAsync();
+            ViewBag.TotalStudents = await _context.Users.CountAsync(u => u.Role == "Student");
+            ViewBag.TotalCompanies = await _context.Users.CountAsync(u => u.Role == "Company");
+            ViewBag.ActiveUsers = await _context.Users.CountAsync(u => u.IsActive);
+
+            // İlan İstatistikleri
+            ViewBag.TotalJobs = await _context.JobPostings.CountAsync();
+            ViewBag.PendingJobs = await _context.JobPostings.CountAsync(j => j.ApprovalStatus == "Pending");
+            ViewBag.ApprovedJobs = await _context.JobPostings.CountAsync(j => j.ApprovalStatus == "Approved");
+            ViewBag.RejectedJobs = await _context.JobPostings.CountAsync(j => j.ApprovalStatus == "Rejected");
+            ViewBag.ActiveJobs = await _context.JobPostings.CountAsync(j => j.IsActive);
+
+            // Başvuru İstatistikleri
+            ViewBag.TotalApplications = await _context.Applications.CountAsync();
+            ViewBag.PendingApplications = await _context.Applications.CountAsync(a => a.Status == "Pending");
+            ViewBag.AcceptedApplications = await _context.Applications.CountAsync(a => a.Status == "Accepted");
+            ViewBag.RejectedApplications = await _context.Applications.CountAsync(a => a.Status == "Rejected");
+
+            // Son 30 gün
+            var last30Days = DateTime.UtcNow.AddDays(-30);
+            ViewBag.NewUsersLast30Days = await _context.Users.CountAsync(u => u.CreatedAt >= last30Days);
+            ViewBag.NewJobsLast30Days = await _context.JobPostings.CountAsync(j => j.CreatedAt >= last30Days);
+            ViewBag.NewApplicationsLast30Days = await _context.Applications.CountAsync(a => a.AppliedAt >= last30Days);
+
+            // En çok başvuru alan ilanlar
+            ViewBag.TopJobs = await _context.JobPostings
+                .Include(j => j.Company)
+                .Select(j => new {
+                    Job = j,
+                    ApplicationCount = _context.Applications.Count(a => a.JobPostingId == j.Id)
+                })
+                .OrderByDescending(x => x.ApplicationCount)
+                .Take(5)
+                .ToListAsync();
+
+            // En aktif firmalar
+            ViewBag.TopCompanies = await _context.CompanyProfiles
+                .Include(c => c.User)
+                .Select(c => new {
+                    Company = c,
+                    JobCount = _context.JobPostings.Count(j => j.CompanyId == c.Id)
+                })
+                .OrderByDescending(x => x.JobCount)
+                .Take(5)
+                .ToListAsync();
+
             return View();
         }
     }
