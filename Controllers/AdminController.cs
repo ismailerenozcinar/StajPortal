@@ -180,9 +180,90 @@ namespace StajPortal.Controllers
             return View(user);
         }
 
-        public IActionResult Jobs()
+        public async Task<IActionResult> Jobs(string? status, string? search)
         {
-            return View();
+            var jobsQuery = _context.JobPostings
+                .Include(j => j.Company)
+                    .ThenInclude(c => c.User)
+                .AsQueryable();
+
+            // Filtreleme: Durum
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                jobsQuery = jobsQuery.Where(j => j.ApprovalStatus == status);
+                ViewBag.SelectedStatus = status;
+            }
+
+            // Filtreleme: Arama
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                jobsQuery = jobsQuery.Where(j =>
+                    j.Title.Contains(search) ||
+                    j.Company.CompanyName.Contains(search) ||
+                    (j.City != null && j.City.Contains(search)));
+                ViewBag.SearchTerm = search;
+            }
+
+            var jobs = await jobsQuery
+                .OrderByDescending(j => j.CreatedAt)
+                .ToListAsync();
+
+            // İstatistikler
+            ViewBag.TotalCount = await _context.JobPostings.CountAsync();
+            ViewBag.PendingCount = await _context.JobPostings.CountAsync(j => j.ApprovalStatus == "Pending");
+            ViewBag.ApprovedCount = await _context.JobPostings.CountAsync(j => j.ApprovalStatus == "Approved");
+            ViewBag.RejectedCount = await _context.JobPostings.CountAsync(j => j.ApprovalStatus == "Rejected");
+            ViewBag.ActiveCount = await _context.JobPostings.CountAsync(j => j.IsActive);
+
+            return View(jobs);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminDeleteJob(int id)
+        {
+            var job = await _context.JobPostings.FindAsync(id);
+            if (job == null)
+            {
+                TempData["Error"] = "İlan bulunamadı.";
+                return RedirectToAction(nameof(Jobs));
+            }
+
+            // Önce ilana ait başvuruları sil
+            var applications = await _context.Applications
+                .Where(a => a.JobPostingId == id)
+                .ToListAsync();
+            
+            if (applications.Any())
+            {
+                _context.Applications.RemoveRange(applications);
+            }
+
+            _context.JobPostings.Remove(job);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"'{job.Title}' ilanı ve ilgili başvurular silindi.";
+            return RedirectToAction(nameof(Jobs));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleJobStatus(int id)
+        {
+            var job = await _context.JobPostings.FindAsync(id);
+            if (job == null)
+            {
+                TempData["Error"] = "İlan bulunamadı.";
+                return RedirectToAction(nameof(Jobs));
+            }
+
+            job.IsActive = !job.IsActive;
+            job.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            var statusText = job.IsActive ? "aktif" : "pasif";
+            TempData["Success"] = $"'{job.Title}' ilanı {statusText} yapıldı.";
+            return RedirectToAction(nameof(Jobs));
         }
 
         public async Task<IActionResult> JobApprovals()
@@ -238,6 +319,77 @@ namespace StajPortal.Controllers
 
             TempData["Success"] = $"'{job.Title}' ilanı reddedildi.";
             return RedirectToAction(nameof(JobApprovals));
+        }
+
+        public async Task<IActionResult> JobApplications(int id)
+        {
+            var job = await _context.JobPostings
+                .Include(j => j.Company)
+                .FirstOrDefaultAsync(j => j.Id == id);
+
+            if (job == null)
+            {
+                TempData["Error"] = "İlan bulunamadı.";
+                return RedirectToAction(nameof(Jobs));
+            }
+
+            var applications = await _context.Applications
+                .Include(a => a.Student)
+                    .ThenInclude(s => s.User)
+                .Where(a => a.JobPostingId == id)
+                .OrderByDescending(a => a.AppliedAt)
+                .ToListAsync();
+
+            ViewBag.Job = job;
+            ViewBag.PendingCount = applications.Count(a => a.Status == "Pending");
+            ViewBag.AcceptedCount = applications.Count(a => a.Status == "Accepted");
+            ViewBag.RejectedCount = applications.Count(a => a.Status == "Rejected");
+
+            return View(applications);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminAcceptApplication(int id, int jobId)
+        {
+            var application = await _context.Applications
+                .Include(a => a.Student)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (application == null)
+            {
+                TempData["Error"] = "Başvuru bulunamadı.";
+                return RedirectToAction(nameof(JobApplications), new { id = jobId });
+            }
+
+            application.Status = "Accepted";
+            application.ReviewedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"{application.Student?.FullName} adlı öğrencinin başvurusu kabul edildi.";
+            return RedirectToAction(nameof(JobApplications), new { id = jobId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminRejectApplication(int id, int jobId)
+        {
+            var application = await _context.Applications
+                .Include(a => a.Student)
+                .FirstOrDefaultAsync(a => a.Id == id);
+
+            if (application == null)
+            {
+                TempData["Error"] = "Başvuru bulunamadı.";
+                return RedirectToAction(nameof(JobApplications), new { id = jobId });
+            }
+
+            application.Status = "Rejected";
+            application.ReviewedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = $"{application.Student?.FullName} adlı öğrencinin başvurusu reddedildi.";
+            return RedirectToAction(nameof(JobApplications), new { id = jobId });
         }
 
         public IActionResult Reports()

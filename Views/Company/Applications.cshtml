@@ -101,15 +101,25 @@
                                     }
                                     else if (app.Status == "Accepted")
                                     {
-                                        <button class="btn btn-success btn-sm" disabled title="Kabul Edildi">
-                                            <i class="fas fa-check-circle"></i> Kabul Edildi
-                                        </button>
+                                        <span class="badge bg-success me-2">
+                                            <i class="fas fa-check-circle me-1"></i>Kabul Edildi
+                                        </span>
+                                        <form asp-action="RejectApplication" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@app.Id" />
+                                            <button type="submit" 
+                                                    class="btn btn-outline-danger btn-sm" 
+                                                    onclick="return confirm('Kabul edilen bu başvuruyu iptal etmek istediğinizden emin misiniz?')"
+                                                    title="İptal Et">
+                                                <i class="fas fa-ban me-1"></i>İptal
+                                            </button>
+                                        </form>
                                     }
                                     else if (app.Status == "Rejected")
                                     {
-                                        <button class="btn btn-danger btn-sm" disabled title="Reddedildi">
-                                            <i class="fas fa-times-circle"></i> Reddedildi
-                                        </button>
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times-circle me-1"></i>Reddedildi
+                                        </span>
                                     }
                                 </div>
                             </td>

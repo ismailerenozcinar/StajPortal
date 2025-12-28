@@ -87,24 +87,26 @@
                     <div class="card h-100 shadow-sm border-0 hover-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start mb-3">
-                                <div>
-                                    <h5 class="card-title fw-bold text-primary mb-1">@job.Title</h5>
-                                    <p class="text-muted mb-0">
+                                <div class="flex-grow-1 me-2" style="min-width: 0; overflow: hidden;">
+                                    <h5 class="card-title fw-bold text-primary mb-1 text-truncate" title="@job.Title">
+                                        @job.Title
+                                    </h5>
+                                    <p class="text-muted mb-0 text-truncate" title="@job.Company.CompanyName">
                                         <i class="fas fa-building me-1"></i>@job.Company.CompanyName
                                     </p>
                                 </div>
-                                <span class="badge bg-success">Aktif</span>
+                                <span class="badge bg-success flex-shrink-0">Aktif</span>
                             </div>
                             
-                            <p class="card-text text-muted small mb-3">
-                                @(job.Description.Length > 100 ? job.Description.Substring(0, 100) + "..." : job.Description)
+                            <p class="card-text text-muted small mb-3 job-description">
+                                @job.Description
                             </p>
 
                             <div class="d-flex align-items-center text-muted small mb-3">
-                                <span class="me-3">
+                                <span class="me-3 text-truncate" style="max-width: 45%;">
                                     <i class="fas fa-map-marker-alt me-1"></i>@job.City
                                 </span>
-                                <span>
+                                <span class="text-truncate" style="max-width: 45%;">
                                     <i class="fas fa-tag me-1"></i>@job.Department
                                 </span>
                             </div>
@@ -184,5 +186,13 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
         }
+        .job-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            word-break: break-word;
+        }
     </style>
 }
+
