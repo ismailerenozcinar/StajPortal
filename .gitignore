@@ -63,5 +63,5 @@ secrets.json
 # Application data
 appsettings.Development.json
 
-# Memory bank - optional, include if you want project docs in repo
-# .memory/
+# Memory bank
+.memory/
